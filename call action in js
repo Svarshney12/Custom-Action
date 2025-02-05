@@ -1,0 +1,39 @@
+function markOpportunityAsWon() {
+    var opportunityId = Xrm.Page.data.entity.getId();
+
+    if (!opportunityId) {
+        Xrm.Utility.alertDialog("❌ Opportunity ID not found.");
+        return;
+    }
+
+    opportunityId = opportunityId.replace("{", "").replace("}", "");
+
+    var parameters = { opportunityID: opportunityId }; 
+
+    var req = new XMLHttpRequest();
+    req.open("POST", Xrm.Page.context.getClientUrl() + "/api/data/v9.1/cree1_MarkAsWon", true);
+    req.setRequestHeader("OData-MaxVersion", "4.0");
+    req.setRequestHeader("OData-Version", "4.0");
+    req.setRequestHeader("Accept", "application/json");
+    req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+
+    req.onreadystatechange = function () {
+        if (this.readyState === 4) {
+            req.onreadystatechange = null;
+
+            if (this.status === 204) {
+                Xrm.Utility.alertDialog("✅ Opportunity marked as won successfully.");
+            } else {
+                
+                try {
+                    var errorResponse = JSON.parse(this.responseText);
+                    Xrm.Utility.alertDialog("❌ Error: " + this.status + " - " + (errorResponse.error.message || "Unknown error"));
+                } catch (e) {
+                    Xrm.Utility.alertDialog("❌ Error: " + this.status + " - " + this.statusText);
+                }
+            }
+        }
+    };
+
+    req.send(JSON.stringify(parameters));
+}
