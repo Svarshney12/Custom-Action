@@ -1,0 +1,48 @@
+ using System;
+using Microsoft.Xrm.Sdk;
+
+namespace SetToWon
+{
+    public class SetOpportunityWonPlugin : IPlugin
+    {
+        public void Execute(IServiceProvider serviceProvider)
+        {
+            try
+            {
+                
+                IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
+
+                
+                if (!context.InputParameters.Contains("opportunityID") || !(context.InputParameters["opportunityID"] is string))
+                {
+                    throw new InvalidPluginExecutionException("Opportunity ID is missing or not in the correct format.");
+                }
+
+                
+                Guid opportunityId = new Guid(context.InputParameters["opportunityID"].ToString());
+
+               
+                IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+                IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
+
+                
+                Entity updateOpportunity = new Entity("opportunity")
+                {
+                    Id = opportunityId
+                };
+
+                
+                updateOpportunity["msdyn_forecastcategory"] = new OptionSetValue(100000005);
+
+                
+                service.Update(updateOpportunity);
+
+            }
+            catch (Exception ex)
+            {
+                
+                throw new InvalidPluginExecutionException($"Error in SetOpportunityWonPlugin: {ex.Message}");
+            }
+        }
+    }
+}
